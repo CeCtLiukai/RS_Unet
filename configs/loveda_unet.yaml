@@ -1,0 +1,58 @@
+experiment:
+  name: unet_scratch_512_bs8
+  seed: 42
+
+#dataset
+data:
+  root: 'D:/Postgraduate_Study/Data/loveda'
+  trian_domains:
+  val_domains:
+  nums_classes:
+  #可能有未标注的数据
+  ignore_idx:
+  batch_size:
+  num_workers:
+  pin_memory:
+  drop_last:
+  train_list:
+  val_list:
+
+augment:
+  crop_size:
+  random_scale:
+  hflip:
+  vflip:
+  color_jitter:
+  normalize:
+    meam:
+    std:
+
+model:
+  type:
+  in_channels:
+  num_classes:
+  base_channels:
+  bilinear:
+
+loss:
+  type:
+  class_weight:
+  dice_weight:
+
+optim:
+  type:
+  lr_rate:
+  epochs:
+  weight_decay:
+  warmup_epochs:
+
+scheduler:
+  type:
+  power:
+
+runtime:
+  device:
+  amp:
+  eval_interval:
+  save_best_on:
+  log_interval:

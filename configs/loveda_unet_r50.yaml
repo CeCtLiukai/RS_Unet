@@ -1,0 +1,14 @@
+#继承文件
+_base_: loveda_unet.yaml
+
+experiment:
+  name: unet_r50_512_bs8
+
+model:
+  backbone: resnet50
+  pretrained: true                 # 注意：这会下载 ImageNet 权重
+  decoder_channels: [256, 128, 64, 32, 16]   # 按 backbone 的第几层改
+
+optim:
+  lr: 5.0e-5                       # 预训练骨干用小一点的学习率
+  epochs: 40
