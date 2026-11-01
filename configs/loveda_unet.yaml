@@ -1,58 +1,58 @@
 experiment:
-  name: unet_scratch_512_bs8
+  name: unet_scratch_512_bs4      # 产物写到 runs/<name>/
   seed: 42
 
-#dataset
 data:
   root: 'D:/Postgraduate_Study/Data/loveda'
-  trian_domains:
-  val_domains:
-  nums_classes:
-  #可能有未标注的数据
-  ignore_idx:
-  batch_size:
-  num_workers:
-  pin_memory:
-  drop_last:
-  train_list:
-  val_list:
+  train_domains: [Urban, Rural]   # 官方 Train 两个域都用
+  val_domains: [Urban]            # Val 下只有 Urban，没有 Rural
+  num_classes: 7                  # LoveDA 官方 0~6
+  ignore_index: 255               # 不参与 loss 的标记值
+  remap_zero_to_ignore: false     # 0 是否为 NoData，等直方图结论再改 true
+
+  batch_size: 4                   # 6GB 显存先按 4；OOM 降到 2，有余量再升 8
+  val_batch_size: 2
+  num_workers: 4                  # Windows 上 spawn 启动慢，别开太大
+  pin_memory: true
+  drop_last: true                 # 训练丢尾巴，避免最后一批不足导致 BN 异常
 
 augment:
-  crop_size:
-  random_scale:
-  hflip:
-  vflip:
-  color_jitter:
+  crop_size: 512                  # 1024 原图裁 512
+  random_scale: [0.5, 2.0]
+  hflip: 0.5                      # 概率，不是强度；0 表示关闭
+  vflip: 0.5
+  color_jitter: 0.0               # 0 表示关闭亮度/对比度扰动
   normalize:
-    meam:
-    std:
+    mean: [0.485, 0.456, 0.406]   # 先按 ImageNet，后续可统计训练集替换
+    std: [0.229, 0.224, 0.225]
 
 model:
-  type:
-  in_channels:
-  num_classes:
-  base_channels:
-  bilinear:
+  type: unet
+  in_channels: 3
+  num_classes: 7                  # 与 data.num_classes 保持一致，训练脚本只读一处
+  base_channels: 64               # 32 可把参数量降到约 1/4（31M -> 7.8M）
+  depth: 5                        # 5 层：64,128,256,512,1024
+  bilinear: false                 # false = 转置卷积上采样
 
 loss:
-  type:
-  class_weight:
-  dice_weight:
+  type: ce                        # cross entropy
+  class_weight: null              # null = 不加权；类别极不均衡时再填 7 个数
+  dice_weight: 0.0                # 0 = 不混 Dice
 
 optim:
-  type:
-  lr_rate:
-  epochs:
-  weight_decay:
-  warmup_epochs:
+  type: adamw
+  lr: 1.0e-3
+  epochs: 40
+  weight_decay: 1.0e-4
+  warmup_epochs: 3
 
 scheduler:
-  type:
-  power:
+  type: poly
+  power: 0.9
 
 runtime:
-  device:
-  amp:
-  eval_interval:
-  save_best_on:
-  log_interval:
+  device: cuda
+  amp: true                       # 6GB 显存建议开
+  eval_interval: 1                # 每几轮验证一次
+  save_best_on: miou
+  log_interval: 50                # 每多少个 step 打一次日志

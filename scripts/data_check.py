@@ -1,11 +1,8 @@
-from turtle import st
 import matplotlib.pyplot as plt
 import cv2, numpy as np
 from collections import Counter
 from PIL import Image
 from pathlib import Path
-import os
-import ply
 import yaml
 from tqdm import tqdm
 
@@ -85,6 +82,7 @@ def label_histogram(mask_dir,sample:None):
         #返回此次图片的内容,两个list,单图排序
         vals, cnts = np.unique(m, return_counts=True) # type: ignore
         #键已存在则值相加，键不存在则新建，对dict进行操作
+        #把新字典里的计数“加”到原来的计数上。
         counter.update(dict(zip(vals.tolist(),cnts.tolist())))
         #统计所有的像素数
     total = sum(counter.values())
