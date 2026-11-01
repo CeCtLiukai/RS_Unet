@@ -1,0 +1,22 @@
+# ---- 数据与训练产物 ----
+data/
+runs/
+logs/
+*.pth
+*.pt
+*.onnx
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# ---- 编辑器 / IDE ----
+.idea/
+.vscode/
+
+# ---- 系统 ----
+Thumbs.db
+.DS_Store
+desktop.ini
