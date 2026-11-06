@@ -124,6 +124,9 @@ if __name__ == "__main__":
     model = UNet(in_channels=3, num_classes=7)
     x = torch.randn(2, 3, 512, 512)
     y = model(x)
+    #  形状：[N, num_classes, H, W]，与输入同分辨率
+    #  默认配置下：[N, 7, H, W]
+    #  数值：未归一化的 logits
     n = sum(p.numel() for p in model.parameters())
     print(f"in  {tuple(x.shape)}")
     print(f"out {tuple(y.shape)}")

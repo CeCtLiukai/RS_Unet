@@ -8,11 +8,11 @@ data:
   val_domains: [Urban]            # Val 下只有 Urban，没有 Rural
   num_classes: 7                  # LoveDA 官方 0~6
   ignore_index: 255               # 不参与 loss 的标记值
-  remap_zero_to_ignore: false     # 0 是否为 NoData，等直方图结论再改 true
+  remap_zero_to_ignore: true     # 0 是否为 NoData，等直方图结论再改 true
 
   batch_size: 4                   # 6GB 显存先按 4；OOM 降到 2，有余量再升 8
   val_batch_size: 2
-  num_workers: 4                  # Windows 上 spawn 启动慢，别开太大
+  num_workers: 0                  # Windows 上 spawn 启动慢，别开太大
   pin_memory: true
   drop_last: true                 # 训练丢尾巴，避免最后一批不足导致 BN 异常
 

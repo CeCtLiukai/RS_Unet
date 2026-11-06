@@ -94,7 +94,11 @@ class LoveDADataset(Dataset):
         mask = self._load_mask(mask_path)
 
         if self.remap_zero_to_ignore:
-            mask = np.where(mask == 0, self.ignore_index, mask).astype(np.uint8)
+            mask = np.where(
+                (mask >= 1) & (mask <= 7),
+                mask - 1,  # 有效类别减 1
+                self.ignore_index,  # 其余变忽略
+            ).astype(np.uint8)
 
         if self.transform is not None:
             img, mask = self.transform(img, mask)
@@ -113,8 +117,6 @@ class LoveDADataset(Dataset):
     def __repr__(self) -> str:
         detail = ", ".join(f"{k}:{v}" for k, v in sorted(self.domain_counts.items()))
         return (
-
-
             f"LoveDADataset(split={self.split!r}, n={len(self.samples)}, "
             f"{detail}, ignore_index={self.ignore_index}, "
             f"remap_zero={self.remap_zero_to_ignore})"
