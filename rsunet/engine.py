@@ -1,7 +1,11 @@
-from sympy import im
+from curses import noecho
+from tkinter import NO
+
 from tqdm import tqdm
 import torch
 from .metrics import mean_iou, update_confusion_matrix
+from rsunet import metrics
+
 def train_one_epoch(
         model,
         train_dataloader,
@@ -24,9 +28,9 @@ def train_one_epoch(
         images = images.to(device)
         masks = masks.to(device)
         #前向传播
-        out = model(images)
+        logits  = model(images)
         #计算损失
-        loss = criterion(out, masks)
+        loss = criterion(logits , masks)
         #清空梯度
         optimizer.zero_grad()
         #反向传播
@@ -107,7 +111,7 @@ def validate_one_epoch(
     union = tp + fp + fn
     #校验计算指标时	只对出现过的类别算 IoU = tp/(tp + fp + fn)，防止除0
     valid_iou = (union>0)
-    #计算iou
+    #计算单类iou
     iou[valid_iou] = (
         tp[valid_iou] / union[valid_iou]
     )
@@ -126,8 +130,75 @@ def validate_one_epoch(
 
     #最终指标
     miou = iou[valid_iou].mean()
-    mean_dice = dice[valid_iou].mean()
+    mean_dice = dice[valid_dice].mean()
     #平均准确度,clamp_min(1)防止分母为 0
     pixel_acc = tp.sum() / confmat.sum().clamp_min(1)
     average_loss = val_total_loss/val_total_samples
-    return average_loss, miou, mean_dice, pixel_acc
+
+    #定义指标字典
+    metrics = {
+        'loss': average_loss,
+        'miou': miou,
+        'mean_dice': mean_dice,
+        'pixel_acc': pixel_acc,
+        #转为原生列表需要在cpu中进行
+        'per_class_iou': iou.detach().cpu().tolist()
+    }
+    return metrics
+
+
+def save_checkpoint(
+        save_path,
+        epoch,
+        model,
+        optimizer,
+        metrics,
+        scheduler=None
+):
+    checkpoint = {
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict':optimizer.state_dict if optimizer is not None else None,
+        'scheduler_state_dict': scheduler.state_dict() if scheduler is not None else None,
+        'metrics': metrics
+    }
+
+    #填入要保存文件与保存路径
+    torch.save(checkpoint, save_path)
+
+def load_checkpoint(
+        checkpoint_path,
+        model,
+        optimizer=None,
+        scheduler=None,
+        device='cpu'
+):
+    checkpoint = torch.load(
+        checkpoint_path,
+        map_location=device
+    )
+
+    #加载model权重
+    model.load_state_dict(
+        checkpoint['model_state_dict']
+    )
+
+    #加载优化器权重
+    if optimizer is not None:
+        optimizer_state_dict = checkpoint.get('optimizer_state_dict')
+        if optimizer_state_dict is not None:
+            optimizer.load_state_dict(optimizer_state_dict)
+
+    #加载调度器权重
+    if scheduler is not None:
+        scheduler_state_dict = checkpoint.get('scheduler_state_dict')
+        if scheduler_state_dict is not None:
+            scheduler.load_state_dict(scheduler_state_dict)
+
+    #获取断点待续起始的epoch
+    start_epoch = checkpoint.get('epoch', 0) + 1
+
+    #获取断点处的指标
+    metrics = checkpoint.get('metrics')
+
+    return start_epoch, metrics
