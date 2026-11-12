@@ -1317,3 +1317,152 @@ visualize_history(
 | `colorbar` | 加颜色条 | 和 `tight_layout` 偶尔冲突 |
 | `set_ylim(0,1)` | 固定比例范围 | 不设会"跨 epoch 不可比" |
 | `threshold = max/2` | 深色格子写白字 | 不设会"看不清数字" |
+## 补充：Matplotlib 常用 marker 标记 & color 颜色速查表
+> 可直接复制下面整块 Markdown 表格，插入教程任意位置，推荐放在**二、最基础的绘图方法 → 1.绘制折线图**小节后面。
+
+### 常用 marker（数据点标记）
+`marker` 用于折线/散点图，标记每个数据点，论文绘图中不要用过大标记，`markersize=3~6` 为宜。
+
+| marker符号 | 形状说明 | 适用场景 |
+|---|---|---|
+| `o` | 实心圆圈 | 训练曲线、通用首选 |
+| `s` | 实心正方形 | 对比实验曲线 |
+| `^` | 实心上三角 | 指标上升类曲线 |
+| `v` | 实心下三角 | 指标下降类曲线 |
+| `<` | 实心左三角 | 区分多条曲线 |
+| `>` | 实心右三角 | 区分多条曲线 |
+| `D` | 菱形 | 重点曲线高亮 |
+| `*` | 星号 | 突出关键点，不宜大量使用 |
+| `.` | 极小点 | 数据点非常密集时 |
+| `None` / `''` | 不显示标记 | epoch数量多，训练曲线默认 |
+
+示例：
+```python
+ax.plot(epochs, train_loss, marker="o", markersize=4)
+```
+
+### 常用 color（线条/标记颜色）
+三种写法：命名颜色、tab配色（论文友好）、十六进制色值。`tab`系列是matplotlib官方配色，配色协调，适合科研图表。
+
+| 颜色写法 | 视觉效果 | 使用建议 |
+|---|---|---|
+| `"tab:blue"` | 蓝色 | train loss / 主曲线首选 |
+| `"tab:red"` | 红色 | val loss / 对比曲线 |
+| `"tab:green"` | 绿色 | mIoU指标曲线 |
+| `"tab:orange"` | 橙色 | Dice指标曲线 |
+| `"tab:purple"` | 紫色 | 学习率曲线 |
+| `"tab:cyan"` | 青色 | 辅助对比曲线 |
+| `"black"` | 纯黑 | 基线曲线 |
+| `"gray"` | 灰色 | 参考线 |
+| `"#1f77b4"` | 十六进制蓝色 | 自定义论文配色 |
+| `"#ff7f0e"` | 十六进制橙色 | 自定义论文配色 |
+
+示例：
+```python
+ax.plot(epochs, val_loss, color="tab:red", linestyle="--", marker="s", markersize=3)
+```
+
+### 完整多曲线示例（带marker+color）
+```python
+ax.plot(epochs, train_loss, label="Train Loss", color="tab:blue", marker="o", markersize=3, linewidth=2)
+ax.plot(epochs, val_loss, label="Val Loss", color="tab:red", linestyle="--", marker="s", markersize=3, linewidth=2)
+ax.plot(epochs, miou, label="mIoU", color="tab:green", marker="^", markersize=3, linewidth=2)
+```
+
+> 💡 实操小提示
+> 1. epoch数量很多（>30），建议 `marker=""` 关闭标记，否则线条拥挤杂乱；
+> 2. 论文图优先使用 `tab:` 系列颜色，避免高饱和刺眼颜色；
+> 3. 同时搭配 `linestyle`（实线`-`、虚线`--`、点线`:`），即使黑白打印也能区分不同曲线。
+
+---
+
+# Matplotlib legend() 图例位置调整
+> 适用遥感分割训练曲线绘图，可直接复制插入 Markdown 教程，建议放在「二、最基础的绘图方法」多条曲线小节后面。
+
+## 1. 基础 loc 参数设置图例位置
+`ax.legend(loc="位置")`，`loc` 支持字符串、数字两种写法。
+
+| loc字符串 | loc数字 | 位置说明 |
+|---|---|---|
+| `'best'` | 0 | 自动选择空白区域（默认） |
+| `'upper right'` | 1 | 右上角 |
+| `'upper left'` | 2 | 左上角 |
+| `'lower left'` | 3 | 左下角 |
+| `'lower right'` | 4 | 右下角 |
+| `'right'` | 5 | 右侧中间 |
+| `'center left'` | 6 | 左侧中间 |
+| `'center right'` |7 | 右侧中间 |
+| `'lower center'` |8 | 底部居中 |
+| `'upper center'` |9 | 顶部居中 |
+| `'center'` |10 | 坐标轴正中心 |
+
+示例代码：
+```python
+# 字符串写法
+ax.legend(loc="upper left")
+
+# 等价数字写法
+ax.legend(loc=2)
+```
+
+## 2. 将图例放到绘图区域外部
+当曲线较多，图例容易遮挡线条时，使用 `bbox_to_anchor` 把图例挪到图外面。
+
+```python
+# 图例放在子图右侧外面
+ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1))
+```
+- `bbox_to_anchor=(x, y)`：基于坐标轴的相对坐标；`x>1` 代表放到坐标轴右侧。
+
+> ⚠️ 重要坑：图例放到外部时，必须使用 `fig.tight_layout()`，并且 `savefig` 添加 `bbox_inches="tight"`，否则保存图片图例被截断。
+
+完整示例：
+```python
+fig, ax = plt.subplots(figsize=(7,4))
+ax.plot(epochs, train_loss, label="Train Loss")
+ax.plot(epochs, val_loss, label="Val Loss")
+ax.set_xlabel("Epoch")
+ax.set_ylabel("Loss")
+
+# 图例放在右侧外部
+ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1))
+ax.grid(alpha=0.3)
+
+fig.tight_layout()
+fig.savefig("loss.png", dpi=200, bbox_inches="tight")
+plt.close(fig)
+```
+
+## 3. 多列横向图例（放在子图上方）
+使用 `ncol` 设置图例列数，适合多条曲线，把图例排布在图表顶部。
+```python
+# 图例放在顶部，分为2列
+ax.legend(loc="upper center", ncol=2, bbox_to_anchor=(0.5, 1.12))
+```
+- `ncol=2`：图例条目分为2列；
+- `bbox_to_anchor=(0.5,1.12)`：y大于1，向上偏移到子图上方。
+
+## 4. 论文绘图常用 legend 完整参数
+```python
+ax.legend(
+    loc="best",
+    ncol=1,          # 图例列数
+    frameon=True,    # 是否显示图例外框，False去除边框
+    fontsize=9,      # 图例文字字号，论文图建议8~10
+    facecolor="white", # 图例背景颜色
+    edgecolor="gray"   # 图例边框颜色
+)
+```
+
+## 5. 常见踩坑总结
+1. **图例遮挡曲线**
+    - 优先调整 `loc` 参数；无效则使用 `bbox_to_anchor` 将图例挪至图外。
+2. **保存图片图例被截断**
+    - 必须调用 `fig.tight_layout()`，`savefig` 带上参数 `bbox_inches="tight"`。
+3. **多子图图例错乱**
+    - 每个 `Axes` 对象调用自身的 `.legend()`，不要混用顶层 `plt.legend()`，防止图例跑到其他子图。
+
+> 💡 遥感训练曲线实操建议
+> 1. 曲线数量2‑3条：直接使用 `loc="best"` 自动摆放；
+> 2. 曲线多容易遮挡：使用 `bbox_to_anchor=(1.02,1)` 放置在图右侧；
+> 3. 论文输出：字号设置 `fontsize=8~10`，保留边框 `frameon=True`。

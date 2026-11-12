@@ -1,9 +1,10 @@
+from sympy import im
 from tqdm import tqdm
 import torch
 from .metrics import mean_iou, update_confusion_matrix
 from rsunet import metrics
 from pathlib import Path
-
+from rsunet.visualize import visualize_history
 
 def train_one_epoch(
     model, train_dataloader, criterion, optimizer, device, ignore_index=255
@@ -240,6 +241,21 @@ def fit(
             'confmat': val_epoch_metrics['confmat']
         }
         history.append(epoch_metrics)
+
+        #记录历史指标
+        visualize_history(
+            history=history,
+            save_path=save_dir/'figures',
+            class_name=[
+                "background",
+                "class_1",
+                "class_2",
+                "class_3",
+                "class_4",
+                "class_5",
+                "class_6",
+            ]
+        )
 
         #打印
         print(

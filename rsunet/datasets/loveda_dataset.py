@@ -74,7 +74,7 @@ class LoveDADataset(Dataset):
             for stem in sorted(imgs):
                 samples.append((imgs[stem], masks[stem], domain))
 
-        return samples  # ← 修复 1：移到循环外
+        return samples[:4]  # ← 修复 1：移到循环外
 
     def __len__(self):
         return len(self.samples)
