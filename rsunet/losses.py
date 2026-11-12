@@ -2,6 +2,12 @@ import torch
 
 
 def seg_ce(logits: torch.Tensor, target: torch.Tensor, ignore_index=255):
+    """
+    :param logits:模型输出得分 (N,C,H,W)
+    :param target:标签 (N,H,W)
+    :param ignore_index:未标注/背景类映射下标 255
+    :return:
+    """
     # '统一对对其像素数'
     n, c, h, w = logits.shape
     logits = logits.permute(0, 2, 3, 1)

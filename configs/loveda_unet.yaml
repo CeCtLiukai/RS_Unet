@@ -47,8 +47,8 @@ optim:
   warmup_epochs: 3
 
 scheduler:
-  type: poly
-  power: 0.9
+  T_max: 100            # 通常 = 总 epoch 数
+  eta_min: 1.0e-6       # 最低 lr，默认 0
 
 runtime:
   device: cuda

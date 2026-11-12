@@ -42,8 +42,8 @@ def update_confusion_matrix(
         ignore_index=255
 ):
     #拉平方便后续构建索引
-    pred = pred.flatten().long()
-    target = target.flatten().long()
+    pred = pred.flatten().long().cpu()
+    target = target.flatten().long().cpu()
 
     #生层无效索引mask
     mask = (target != ignore_index)
@@ -72,7 +72,7 @@ def update_confusion_matrix(
     hist = torch.bincount(
         index,
         minlength=num_classes * num_classes
-    ).reshape(num_classes, num_classes)
+    ).reshape(num_classes, num_classes).to(confmat.device)
 
     confmat += hist
     return confmat
